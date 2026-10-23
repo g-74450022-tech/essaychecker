@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Essay Grader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f4ff;--card:#fff;--ink:#1e1b3a;--mute:#6b6a85;--line:#e9e6f6;
+  --a1:#ff6b4a;--a2:#ffb020;--g1:#ff6b4a38;--g2:#ffb02030;
+  --c:#7c3aed;--ca:#db2777;--o:#d97706;--l:#059669;
+  --cS:#f3ecff;--caS:#ffe9f3;--oS:#fff4de;--lS:#dcfaee;
+  color-scheme:light;
+}
+body[data-app=spm]{--a1:#2563eb;--a2:#06b6d4;--g1:#2563eb30;--g2:#06b6d430}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font:600 15px/1.55 'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--ink);min-height:100vh;padding-bottom:130px;
+  background:radial-gradient(800px 480px at 105% -8%,var(--g2),transparent 62%),radial-gradient(700px 480px at -10% 0,var(--g1),transparent 62%),var(--bg);background-attachment:fixed}
+button{font:inherit;color:inherit;cursor:pointer}
+.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.wrap{max-width:760px;margin:0 auto;padding:0 14px}
+
+/* header */
+.top{position:sticky;top:0;z-index:20;background:#ffffffcc;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+.top .wrap{display:flex;justify-content:flex-end;align-items:center;gap:8px;height:56px}
+@media(min-width:900px){.top .wrap{justify-content:center}}
+.seg{display:flex;background:#efecfb;border-radius:999px;padding:4px;gap:2px}
+.seg button{border:0;background:transparent;padding:8px 16px;border-radius:999px;font-weight:900;color:var(--mute);transition:.18s}
+.seg button[aria-pressed=true]{color:#fff;background:linear-gradient(135deg,var(--a1),var(--a2));box-shadow:0 4px 12px var(--g1)}
+.ico{width:40px;height:40px;border-radius:50%;border:0;background:#efecfb;display:grid;place-items:center;color:var(--ink);transition:.15s;position:relative}
+.ico:active{transform:scale(.9)}
+.ico.dot::after{content:'';position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;background:#22c55e;border:2px solid #fff}
+.ico.dot.need::after{background:#f59e0b;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{transform:scale(1.5);opacity:.5}}
+
+/* tabs / chips */
+.modes{display:flex;gap:8px;margin:14px 0 4px}
+.modes button{flex:1;border:2px solid var(--line);background:#fff;border-radius:18px;padding:11px;font-weight:900;display:flex;gap:8px;align-items:center;justify-content:center;transition:.18s}
+.modes button[aria-pressed=true]{border-color:transparent;background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;box-shadow:0 8px 18px var(--g1)}
+.badge{background:#fff;color:var(--ink);border-radius:99px;font-size:12px;padding:0 8px;font-weight:900}
+.card{background:var(--card);border-radius:22px;padding:16px;margin:12px 0;box-shadow:0 8px 26px #3b2d8a14}
+.lbl{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:900;margin-bottom:8px}
+.grp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:2px 0 10px}
+.grp small{font-size:12px;font-weight:900;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;width:46px}
+.chip{border:2px solid var(--line);background:#fff;padding:7px 15px;border-radius:999px;font-weight:900;transition:.15s}
+.chip:hover{border-color:var(--a1)}
+.chip[aria-pressed=true]{background:linear-gradient(135deg,var(--a1),var(--a2));border-color:transparent;color:#fff;transform:translateY(-1px);box-shadow:0 6px 14px var(--g1)}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 11px;border-radius:99px;background:#efecfb;font-weight:900;font-size:13px}
+.pill.ok{background:#dcfaee;color:#047857}.pill.warn{background:#fff1d6;color:#b45309}
+.pill.band{background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff}
+.spec{display:flex;gap:6px;flex-wrap:wrap}
+
+/* inputs */
+textarea,input.name,#keyInput{width:100%;border:2px solid var(--line);border-radius:16px;padding:12px 14px;font:600 16px/1.55 inherit;font-family:inherit;background:#fcfbff;color:var(--ink);resize:vertical;transition:.15s}
+textarea:focus,input.name:focus,#keyInput:focus{outline:0;border-color:var(--a1);box-shadow:0 0 0 4px var(--g1)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.row.end{justify-content:flex-end}
+.btn{border:0;border-radius:14px;padding:10px 14px;font-weight:900;background:#efecfb;display:inline-flex;align-items:center;gap:7px;transition:.15s}
+.btn:active{transform:scale(.95)}
+.btn.pri{background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;box-shadow:0 6px 14px var(--g1)}
+.btn.ghost{background:transparent;color:var(--mute)}
+.btn.red{background:#ffe5ea;color:#be123c}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.th{position:relative}
+.th img{width:54px;height:54px;border-radius:12px;object-fit:cover;display:block;border:2px solid var(--line)}
+.th button{position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;border:2px solid #fff;background:#f43f5e;color:#fff;font-size:13px;line-height:1;padding:0}
+.drop{outline:3px dashed var(--a1);outline-offset:-6px}
+
+/* sticky bar */
+#bar{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:26px 14px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 55%,transparent);pointer-events:none}
+#bar .in{max-width:760px;margin:0 auto;pointer-events:auto}
+.cta{width:100%;border:0;border-radius:20px;padding:16px;font-size:18px;font-weight:900;color:#fff;background:linear-gradient(135deg,var(--a1),var(--a2));box-shadow:0 12px 28px var(--g1);display:flex;gap:10px;align-items:center;justify-content:center;transition:.15s}
+.cta:active{transform:scale(.97)}
+.cta:disabled{opacity:.45;box-shadow:none}
+.prog{display:flex;align-items:center;gap:14px;background:#fff;border-radius:22px;padding:12px 14px;box-shadow:0 12px 30px #3b2d8a30}
+.pct{font-size:30px;font-weight:900;min-width:84px;background:linear-gradient(135deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent;font-variant-numeric:tabular-nums}
+.pcol{flex:1;min-width:0}
+.track{height:12px;border-radius:99px;background:var(--line);overflow:hidden}
+.fill{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--a1),var(--a2),var(--a1));background-size:200% 100%;animation:slide 1.2s linear infinite;transition:width .2s}
+@keyframes slide{to{background-position:-200% 0}}
+.pl{font-size:13px;color:var(--mute);margin-top:4px;font-weight:800}
+
+/* bulk */
+.rowc{background:#fff;border-radius:20px;padding:12px;margin:10px 0;box-shadow:0 6px 20px #3b2d8a10;border:2px solid transparent;transition:.2s}
+.rowc.done{border-color:#bbf7d0}.rowc.error{border-color:#fecdd3}.rowc.running{border-color:var(--a1)}
+.rtop{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.num{font-weight:900;color:var(--mute);width:22px;text-align:center}
+.rtop .name{flex:1;padding:8px 12px;font-weight:800}
+.st{font-size:12px;font-weight:900;padding:3px 10px;border-radius:99px;background:#efecfb;color:var(--mute);white-space:nowrap}
+.st.running{background:var(--g1);color:var(--ink)}.st.done{background:#dcfaee;color:#047857}.st.error{background:#ffe5ea;color:#be123c}
+.rfoot{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap;font-size:13px;color:var(--mute)}
+.mini{border:0;background:#efecfb;border-radius:10px;padding:4px 10px;font-weight:900;font-size:13px}
+.rbar{height:5px;background:var(--line);border-radius:9px;margin-top:8px;overflow:hidden}.rbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--a1),var(--a2));transition:width .25s}
+.err{color:#be123c;font-size:13px;margin:6px 0 0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.stat{background:linear-gradient(160deg,#fff,var(--aS,#f6f3ff));border-radius:16px;padding:10px 6px;text-align:center;border:2px solid var(--line)}
+.stat b{display:block;font-size:22px;font-weight:900;line-height:1.2}.stat span{font-size:11px;color:var(--mute);font-weight:900;text-transform:uppercase}
+.rc{width:100%;display:flex;align-items:center;gap:10px;background:#fff;border:2px solid var(--line);border-radius:18px;padding:10px 12px;margin:8px 0;text-align:left;transition:.15s}
+.rc:hover{border-color:var(--a1);transform:translateY(-1px)}
+.rc .nm{flex:1;min-width:0;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bars{display:flex;gap:3px;align-items:flex-end;height:30px}
+.bars i{width:8px;border-radius:3px;background:var(--k)}
+.tot{font-size:22px;font-weight:900}.tot small{font-size:12px;color:var(--mute)}
+
+/* result */
+.hero{display:flex;gap:16px;align-items:center}
+.ring{--p:0;width:108px;height:108px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--a1),var(--a2) calc(var(--p)*1%),#ece9fb 0);position:relative;flex:none;text-align:center}
+.ring::before{content:'';position:absolute;inset:11px;background:#fff;border-radius:50%}
+.ring div{position:relative;line-height:1}.ring b{font-size:36px;font-weight:900}.ring small{display:block;font-size:13px;color:var(--mute);font-weight:900;margin-top:2px}
+.hero p{margin:8px 0 0}
+.banner{background:#fff1d6;color:#92400e;border-radius:16px;padding:10px 14px;font-weight:800;margin:12px 0}
+.tabs{display:flex;gap:4px;background:#fff;padding:5px;border-radius:999px;box-shadow:0 8px 22px #3b2d8a14;margin:14px 0;position:sticky;top:64px;z-index:6}
+.tabs button{flex:1;border:0;background:transparent;border-radius:999px;padding:9px 4px;font-weight:900;color:var(--mute);transition:.18s}
+.tabs button[aria-pressed=true]{background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff}
+.crit{border-radius:20px;padding:14px;margin:10px 0;background:var(--ks);border-left:7px solid var(--k)}
+.crit header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.crit .cn{display:flex;align-items:center;gap:8px;font-weight:900}
+.crit .cn i{background:var(--k);color:#fff;border-radius:9px;padding:1px 8px;font-size:12px;font-style:normal}
+.sc{font-size:26px;font-weight:900;color:var(--k)}.sc small{font-size:13px;color:var(--mute)}
+.pips{display:flex;gap:5px;margin:6px 0}.pips b{width:26px;height:8px;border-radius:9px;background:#00000014}.pips b.on{background:var(--k)}
+.crit p{margin:6px 0}
+.more{border:0;background:transparent;color:var(--k);font-weight:900;padding:4px 0;display:flex;align-items:center;gap:4px}
+.more .i{transition:.2s}.more[aria-expanded=true] .i{transform:rotate(180deg)}
+.why{background:#ffffffb0;border-radius:14px;padding:10px 12px;margin-top:6px;font-size:14px}
+.why .band{font-weight:800}.why .next{color:var(--k);font-weight:800}
+.leg{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.lg{border:2px solid var(--line);background:#fff;border-radius:12px;padding:4px 10px;font-weight:900;font-size:13px;display:flex;gap:6px;align-items:center;transition:.15s}
+.lg[aria-pressed=true]{border-color:var(--a1);background:var(--g1)}
+.lg b{min-width:20px;text-align:center}
+.script,.mdl{white-space:pre-wrap;line-height:2.1;font-size:16px;font-weight:600}
+.script{position:relative;padding-right:42px}
+.mk{all:unset;cursor:pointer;border-radius:4px;transition:opacity .15s;font-weight:700}
+.mk sup{font-size:12px;font-weight:900;margin:0 1px 0 2px;line-height:0;vertical-align:super}
+.mk.dim,.gut.dim{opacity:.18}
+.mk-merit{background:#d9f9e6;color:#0a6b3a;box-shadow:inset 0 -2px #22c55e;padding:0 2px}
+.mk-serious{text-decoration:underline solid #e11d48 2.5px;text-underline-offset:5px;color:#9f1239}
+.mk-minor{text-decoration:underline wavy #f59e0b 2px;text-underline-offset:5px;color:#9a5b00}
+.mk-multiple{background:#ffeef2;color:#9f1239;border-radius:6px;padding:0 3px}
+.mk-repeat{color:#0369a1;background:#e0f2fe;padding:0 2px}
+.mk.caret{display:inline-block;font-weight:900;font-size:20px;line-height:1;vertical-align:baseline;padding:0 3px;margin:0 1px;border-radius:6px}
+.mk-omission.caret{color:#6d28d9;background:#f1eaff}
+.mk-para.caret{color:#475569;background:#e8edf3}
+.gut{position:absolute;right:10px;width:14px;border:0;border-left:3px solid #be123c;border-right:3px solid #be123c;background:transparent;padding:0;border-radius:0;cursor:pointer;transition:opacity .15s}
+.hint{font-size:13px;color:var(--mute);margin:10px 0 0}
+.imp{border-radius:18px;background:#fff;border:2px solid var(--line);padding:12px;margin:10px 0}
+.imp .ar{display:inline-block;font-weight:900;background:var(--g1);border-radius:9px;padding:1px 10px;font-size:13px}
+.was{color:#be123c;text-decoration:line-through;text-decoration-color:#fda4af}
+.bet{color:#047857;font-weight:800}
+.imp p{margin:6px 0 0;font-size:14px;color:var(--mute)}
+.hl-vocab{background:#ede4ff;box-shadow:inset 0 -2px #8b5cf6;border-radius:4px;padding:0 2px}
+.hl-connector{background:#dcefff;box-shadow:inset 0 -2px #3b82f6;border-radius:4px;padding:0 2px}
+.hl-detail{background:#ffe9d2;box-shadow:inset 0 -2px #f97316;border-radius:4px;padding:0 2px}
+.hl-grammar{background:#d9f9e6;box-shadow:inset 0 -2px #22c55e;border-radius:4px;padding:0 2px}
+.off-vocab .hl-vocab,.off-connector .hl-connector,.off-detail .hl-detail,.off-grammar .hl-grammar{background:none;box-shadow:none}
+.lg.off{opacity:.45}
+.lg i{width:12px;height:12px;border-radius:4px;display:block}
+
+/* sheet, overlay, modal, toast */
+#scrim{position:fixed;inset:0;background:#1e1b3a66;z-index:55;opacity:0;pointer-events:none;transition:.2s}
+#scrim.on{opacity:1;pointer-events:auto}
+#sheet{position:fixed;left:50%;bottom:0;width:min(560px,100%);transform:translate(-50%,110%);transition:transform .28s cubic-bezier(.2,.9,.3,1.1);background:#fff;border-radius:28px 28px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom));z-index:60;box-shadow:0 -12px 40px #1e1b3a30}
+#sheet.on{transform:translate(-50%,0)}
+.sh-h{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.sh-g{min-width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:22px;font-weight:900;color:#fff;padding:0 6px}
+.sh-g.merit{background:#22c55e}.sh-g.serious{background:#e11d48}.sh-g.minor{background:#f59e0b}.sh-g.multiple{background:#be123c}.sh-g.omission{background:#8b5cf6}.sh-g.repeat{background:#0ea5e9}.sh-g.para{background:#64748b}
+.sh-h b{font-size:18px;display:block;line-height:1.2}.sh-h span{color:var(--mute);font-size:13px}
+#detail{position:fixed;inset:0;z-index:50;overflow:auto;transform:translateY(102%);transition:transform .3s;background:radial-gradient(800px 480px at 105% -8%,var(--g2),transparent 62%),var(--bg);padding-bottom:60px}
+#detail.on{transform:none}
+.dtop{position:sticky;top:0;z-index:8;background:#ffffffe6;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding-top:env(safe-area-inset-top);border-bottom:1px solid var(--line)}
+.dtop .wrap{display:flex;align-items:center;gap:10px;height:56px}.dtop b{flex:1;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal{position:fixed;inset:0;z-index:70;background:#1e1b3a77;display:grid;place-items:center;padding:16px}
+.mbox{background:#fff;border-radius:26px;padding:22px;width:min(420px,100%);box-shadow:0 20px 60px #1e1b3a50;animation:pop .25s}
+@keyframes pop{from{transform:scale(.9);opacity:0}}
+.mbox h3{margin:0 0 12px;font-size:20px}
+.chk{display:flex;gap:10px;align-items:center;margin:12px 0 2px;font-weight:800}.chk input{width:20px;height:20px;accent-color:var(--a1)}
+.note{font-size:13px;color:var(--mute);margin:4px 0 0}
+#toast{position:fixed;left:50%;bottom:calc(120px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#1e1b3a;color:#fff;border-radius:16px;padding:10px 18px;font-weight:800;opacity:0;pointer-events:none;transition:.25s;z-index:90;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:95}
+.empty{text-align:center;color:var(--mute);padding:26px 10px}
+@media(max-width:420px){.hero{flex-direction:column;text-align:center}.stats{grid-template-columns:repeat(2,1fr)}.bars{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+#result,.res{scroll-margin-top:68px}
+.mk-merit,.mk-multiple,.mk-repeat{-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.mk-merit{box-shadow:inset 0 -2px #22c55e;line-height:1.5}
+
+</style>
+</head>
+<body data-app="uasa">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16v4M17 18h4"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l3 3"/></symbol>
+  <symbol id="i-vol" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/></symbol>
+  <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l4 6M21 9l-4 6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-clip" viewBox="0 0 24 24"><rect x="6" y="5" width="12" height="16" rx="2"/><path d="M9 5V3h6v2"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 00-1-1H5a1 1 0 00-1 1v10a1 1 0 001 1h3"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c.8-3.5 3.3-5 7-5s6.2 1.5 7 5M16 5a3.5 3.5 0 010 7M18 15c2 .5 3.5 2 4 5"/></symbol>
+</svg>
+
+<header class="top"><div class="wrap">
+  <div class="seg" id="appSeg">
+    <button data-act="app" data-v="uasa" aria-pressed="true" data-snd="chip">UASA</button>
+    <button data-act="app" data-v="spm" aria-pressed="false" data-snd="chip">SPM</button>
+  </div>
+  <button class="ico" id="sndBtn" data-act="sound" data-snd="none" aria-label="Sound"><svg class="i"><use href="#i-vol"/></svg></button>
+  <button class="ico dot need" id="keyBtn" data-act="key" aria-label="API key"><svg class="i"><use href="#i-key"/></svg></button>
+</div></header>
+
+<main class="wrap">
+  <div class="modes" id="modes">
+    <button data-act="mode" data-v="single" aria-pressed="true" data-snd="chip"><svg class="i"><use href="#i-user"/></svg>Single</button>
+    <button data-act="mode" data-v="bulk" aria-pressed="false" data-snd="chip"><svg class="i"><use href="#i-users"/></svg>Class <span class="badge" id="bulkBadge" hidden>0</span></button>
+  </div>
+
+  <section class="card" id="setup">
+    <div id="chips"></div>
+    <div class="spec" id="specLine"></div>
+  </section>
+
+  <section class="card">
+    <div class="lbl"><span>Question</span>
+      <button class="btn" data-act="pick-prompt-img" data-snd="none"><svg class="i"><use href="#i-camera"/></svg></button></div>
+    <textarea id="prompt" rows="3" placeholder="Paste the question"></textarea>
+    <div class="thumbs" id="promptThumb"></div>
+  </section>
+
+  <section id="vSingle">
+    <div class="card" id="essayCard">
+      <div class="lbl"><span>Essay</span><span class="pill" id="wc">0</span></div>
+      <textarea id="essay" rows="9" placeholder="Type, paste or add photos"></textarea>
+      <div class="thumbs" id="essayThumbs"></div>
+      <div class="row">
+        <button class="btn" data-act="pick-photos" data-snd="none"><svg class="i"><use href="#i-camera"/></svg>Photos</button>
+        <button class="btn" data-act="pick-file" data-snd="none"><svg class="i"><use href="#i-file"/></svg>File</button>
+        <button class="btn" data-act="sample" data-snd="pop"><svg class="i"><use href="#i-spark"/></svg>Sample</button>
+        <button class="btn ghost" data-act="clear" data-snd="pop"><svg class="i"><use href="#i-trash"/></svg></button>
+      </div>
+    </div>
+    <div id="result"></div>
+  </section>
+
+  <section id="vBulk" hidden>
+    <div class="row" style="margin:0 0 4px">
+      <button class="btn pri" data-act="b-add" data-snd="pop"><svg class="i"><use href="#i-plus"/></svg>Add</button>
+      <button class="btn" data-act="b-paste" data-snd="chip"><svg class="i"><use href="#i-clip"/></svg>Paste</button>
+      <button class="btn" data-act="b-files" data-snd="none"><svg class="i"><use href="#i-file"/></svg>Files</button>
+      <button class="btn ghost" data-act="b-redo" data-snd="pop" id="bRedo" hidden>Redo all</button>
+      <button class="btn ghost" data-act="b-clear" data-snd="pop" id="bClear" hidden><svg class="i"><use href="#i-trash"/></svg></button>
+    </div>
+    <div class="card" id="pastePanel" hidden>
+      <textarea id="pasteBox" rows="7" placeholder="Name: Aina&#10;essay…&#10;---&#10;Name: Raj&#10;essay…"></textarea>
+      <div class="row end"><button class="btn pri" data-act="b-paste-add" data-snd="upload">Add</button></div>
+    </div>
+    <div id="bres"></div>
+    <div id="blist"></div>
+  </section>
+</main>
+
+<div id="bar"><div class="in"></div></div>
+<div id="scrim" data-act="close-sheet"></div>
+<div id="sheet" role="dialog" aria-live="polite"></div>
+<div id="detail"><div class="dtop"><div class="wrap"><button class="ico" data-act="close-detail" data-snd="pop"><svg class="i"><use href="#i-back"/></svg></button><b id="dName"></b></div></div><div class="wrap" id="dBody"></div></div>
+
+<div class="modal" id="keyModal" hidden>
+  <div class="mbox">
+    <h3>API key</h3>
+    <input id="keyInput" type="password" autocomplete="off" placeholder="AIza…">
+    <label class="chk"><input type="checkbox" id="keyRemember"> Remember on this device</label>
+    <p class="note">Only tick this on your own phone or computer.</p>
+    <div class="row end">
+      <button class="btn ghost" data-act="key-forget" data-snd="pop">Forget</button>
+      <button class="btn pri" data-act="key-save" data-snd="upload">Use key</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fPrompt" accept="image/*" hidden>
+<input type="file" id="fPhotos" accept="image/*" multiple hidden>
+<input type="file" id="fFile" accept=".txt,.pdf,text/plain,application/pdf" hidden>
+<input type="file" id="fBulk" accept="image/*,.txt,.pdf,text/plain,application/pdf" multiple hidden>
+<input type="file" id="fRow" accept="image/*" multiple hidden>
+<div id="toast"></div>
+<canvas id="fx"></canvas>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const sleep = (ms, sig) => new Promise((res, rej) => {
+  const t = setTimeout(res, ms);
+  sig?.addEventListener('abort', () => { clearTimeout(t); rej(new DOMException('Aborted', 'AbortError')); }, { once: true });
+});
+const words = t => (t || '').trim().split(/\s+/).filter(Boolean).length;
+const icon = n => `<svg class="i"><use href="#i-${n}"/></svg>`;
+const clamp = v => Math.max(0, Math.min(5, Math.round(Number(v) || 0)));
+
+/* ================= CONFIG ================= */
+// Stable model first (preview models are overloaded more often). Each model has its own quota, so falling back helps.
+const MODELS = ['gemini-2.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash-lite'];
+let modelIdx = 0;
+const BASE = 'https://generativelanguage.googleapis.com/v1beta/models/';
+const CONCURRENCY = 2;
+
+// LPM marking symbols (from the official sheet). Edit this one list to change them everywhere
+const SYM = {
+  merit:    { g: '✓',   n: 'Merit',                  d: 'Good language or idea' },
+  serious:  { g: '—',   n: 'Serious error',          d: 'Single word error', tag: 'MWE', e: 'tense, SVA' },
+  minor:    { g: '~~~', n: 'Minor error',            d: 'Single word error', tag: 'SWE', e: 'spelling' },
+  multiple: { g: '||',  n: 'Multiple errors',        d: 'Errors multiple in nature, distorted meaning' },
+  omission: { g: '∧',   n: 'Omission',               d: 'A word is missing' },
+  repeat:   { g: 'R',   n: 'Repetition',             d: 'Repeated word' },
+  para:     { g: '§',   n: 'Paragraphing',           d: 'New paragraph needed' }
+};
+const CRIT = [
+  { k: 'c',  n: 'Content',                   s: 'C' },
+  { k: 'ca', n: 'Communicative Achievement', s: 'CA' },
+  { k: 'o',  n: 'Organisation',              s: 'O' },
+  { k: 'l',  n: 'Language',                  s: 'L' }
+];
+// Band descriptors (0-5; 4 and 2 sit between neighbouring descriptors)
+const RUB = {
+  c:  { 5: 'All content is relevant to the task. The target reader is fully informed.',
+        3: 'Minor irrelevances and/or omissions. The target reader is on the whole informed.',
+        1: 'Irrelevances and misinterpretation of the task may be present. The target reader is minimally informed.',
+        0: 'Content is totally irrelevant. The target reader is not informed.' },
+  ca: { 5: 'Uses the conventions of the task to hold the reader\'s attention and communicate straightforward ideas.',
+        3: 'Uses the conventions of the task in generally appropriate ways to communicate straightforward ideas.',
+        1: 'Communicates simple ideas in simple ways.',
+        0: 'Performance is below the level of descriptor 1.' },
+  o:  { 5: 'Generally well organised and coherent, using a variety of linking words and cohesive devices.',
+        3: 'Connected and coherent, using basic linking words and a limited number of cohesive devices.',
+        1: 'Connected, using basic high-frequency linking words.',
+        0: 'Performance is below the level of descriptor 1.' },
+  l:  { 5: 'Appropriate vocabulary with good control of grammar for the level; errors do not impede communication.',
+        3: 'Generally appropriate vocabulary and good control of simple forms; errors are noticeable but meaning can be determined.',
+        1: 'Basic vocabulary and some control of simple forms; errors may impede meaning at times.',
+        0: 'Performance is below the level of descriptor 1.' }
+};
+const SCALE = {
+  A2: 'A2 scale. Short, simple everyday language earns top marks. Allow some basic errors if the message is clear.',
+  B1: 'B1 scale. Expect connected paragraphs, a fair range of everyday vocabulary, simple grammar with good control and some complex forms.',
+  B2: 'B2 scale (highest). Top Language marks need a range of vocabulary including less common words, and simple and complex grammar used with control and flexibility.'
+};
+const rubricText = (k, n) => RUB[k][n] || `Between the descriptors for ${n + 1} and ${n - 1}.`;
+
+function specFor(app, s) {
+  if (app === 'uasa') {
+    const T = { 1: { 1: [60, 'A2'], 2: [90, 'A2'] }, 2: { 1: [70, 'A2'], 2: [100, 'B1'] }, 3: { 1: [80, 'A2'], 2: [120, 'B1'] } };
+    const [w, scale] = T[s.form][s.part];
+    return { app, title: `UASA · Form ${s.form} · Part ${s.part}`, short: `F${s.form} P${s.part}`, scale, lo: Math.round(w * .8), hi: Math.round(w * 1.25), wl: `~${w}`, w,
+      kind: s.part === 1 ? 'short communicative message' : 'note expansion',
+      exam: `UASA English Paper 2 (Writing), Form ${s.form}, Part ${s.part}` };
+  }
+  const T = { 1: [80, 'A2', 70, 95, 'short message / email'], 2: [135, 'B1', 120, 150, 'guided writing'], 3: [225, 'B2', 200, 250, 'extended writing'] };
+  const [w, scale, lo, hi, kind] = T[s.part];
+  return { app, title: `SPM 1119/2 · Part ${s.part}${s.part === 3 ? ' · ' + cap(s.genre) : ''}`, short: `Part ${s.part}`, scale, lo, hi, w,
+    wl: s.part === 1 ? '~80' : `${lo}–${hi}`, kind: kind + (s.part === 3 ? ` (${s.genre})` : ''),
+    exam: `SPM English 1119/2 (Writing), Part ${s.part}` };
+}
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+/* ================= SAMPLES ================= */
+const SAMPLES = {
+  uasa: {
+    '1-1': { q: "You received an email from your friend, Alex, asking about your weekend plans.\n\nWrite an email to Alex (about 60 words).\n- Invite Alex to go hiking at Bukit Hantu\n- Say what time to meet and what to bring\n- Give a reason why it will be fun", e: "Hi Alex,\n\nI am glad to hear from you! Would you like go hiking with me at Bukit Hantu this Saturday? We can meet at 7:00 a.m. at the park entrance.\n\nPlease bring a bottle of water and wear comfortable shoes. It will be fun because the view at the peak is amazing!\n\nYour friend,\nLee" },
+    '1-2': { q: "Write an essay about your School Sports Day (about 90 words).\n- When and where it was held\n- What event you took part in or watched\n- How you felt and why", e: "Last Friday, our school held Sports Day at the town stadium. The weather was sunny. Every student wear their house t-shirt, yellow, red or blue.\n\nI take part in the 100-meter race. I was very nervous at the starting line but when the horn sounded I run as fast as I can. I won second place and got a silver medal!\n\nI felt very proud and happy because my teammates cheer loudly for me. It was a unforgettable day." },
+    '2-1': { q: "Your cousin, Sarah, is planning a birthday party and asked for your suggestion.\n\nWrite a message to Sarah (about 70 words).\n- Suggest a venue\n- Give two reasons\n- Ask what gift she would like", e: "Hi Sarah,\n\nHappy upcoming birthday! I think have your party at Pizza Palace is a good idea. First, they have delicious food and a play area. Second, the restaurant is big enough for all our friends.\n\nBy the way, what gift you want this year? Please tell me.\n\nLove,\nAina" },
+    '2-2': { q: "Write an essay about a memorable family holiday (about 100 words).\n- Where did you go and who went with you?\n- What activities did you do?\n- What did you buy or eat?\n- Why was it memorable?", e: "During the last school holiday, my family and I went to Cameron Highlands for three days. We stay at a small hotel near Brinchang.\n\nOn the first day we visit a strawberry farm and picked strawberries ourselves. We also went to a tea plantation and drink hot tea in the cold weather. At night we eat steamboat at the night market.\n\nThis trip was memorable because my parents was relaxed and we spent good time together." },
+    '3-1': { q: "You read an announcement about a school recycling campaign.\n\nWrite an email to your friend, Bryan (about 80 words).\n- Invite him to join next Saturday\n- List two items you will bring\n- Explain why recycling matters", e: "Hi Bryan,\n\nAre you free next Saturday morning? Our school organise a recycling campaign and I want you join me!\n\nI will bring old newspapers and plastic bottles. By recycling, we can reduce waste and protect environment. Besides, our class can win a prize if we collect the most items.\n\nTell me if you can come.\n\nRegards,\nRaj" },
+    '3-2': { q: "Write an essay on 'A Hobby That Inspires Me' (about 120 words).\n- What your hobby is and when you started\n- How often you practise\n- How it benefits your health\n- Your future plans", e: "My favourite hobby is playing badminton. I start playing when I was ten years old after I watch the Olympic Games with my father.\n\nI practise twice a week at the community hall with my friends. I only need a racket, shuttlecocks and sport shoes. Playing badminton make my body fit and it also help me to relieve stress after school.\n\nIn the future, I hope to join the district tournament and represent my school. Badminton teach me discipline and never give up." }
+  },
+  spm: {
+    '1': { q: "Your friend, Daniel, invited you to his birthday party but you cannot go.\n\nWrite an email to Daniel (about 80 words).\n- Say sorry\n- Explain why you cannot come\n- Suggest another time to meet", e: "Hi Daniel,\n\nThank you for invite me to your birthday party. I am very sorry because I cannot come. My grandmother are sick and my family must visit her in hospital on that day.\n\nMaybe we can go to cinema next weekend to celebrate together? I will buy you a present. Please tell me which day you are free.\n\nYour friend,\nHafiz" },
+    '2': { q: "Your school is organising a Reading Week. Write an article for the school magazine (120–150 words).\n- Why reading is important\n- What books students enjoy\n- How to encourage more students to read", e: "Reading is a very important habit for students. When we read, we learn new words and our English become better. Besides that, reading can make us relax after a tiring day at school.\n\nMost students in my school like to read comics, novels and magazine about their favourite singers. Some boys also enjoy books about football and technology.\n\nTo encourage more students to read, the school can hold a book fair and give prizes to the best reader every month. Teachers can also ask students to read ten minutes before the lesson start. In conclusion, if everyone read every day, our school will be a smarter place." },
+    '3': { q: "Write an article for your school magazine about the benefits and challenges of social media for teenagers.\n- Reasons teenagers use social media\n- Main risks\n- Recommendations for healthy use", e: "Social media has become very famous among teenager nowdays. Almost every teenager have smart phone with internet. They use Instagram, TikTok, and WhatsApp everyday.\n\nFirst reason teenagers like social media is because they can communicate with their friends easily. They can share photo, video, and message fast. It help them to stay connected with classmate after school. Besides that, social media also offer entertainment when they feel bored.\n\nHowever, there are many risk of social media. One major challenge is cyberbullying. Bad people can leave mean comment on photos. Furthermore, teenagers waste too much time scrolling videos until late night. This cause them tired in school and get poor result in exam.\n\nTo overcome this, teenagers must manage their time wisely. Parents should monitor their children phone usage at night. In conclusion, social media is useful if we use it properly." }
+  }
+};
+
+/* ================= STATE ================= */
+let uid = 0; const nid = () => 'i' + (++uid);
+const blank = sel => ({ sel, prompt: '', promptImg: null, essay: '', images: [], rec: null, bulk: [] });
+const state = {
+  app: 'uasa', mode: 'single',
+  uasa: blank({ form: 2, part: 2 }),
+  spm: blank({ part: 3, genre: 'article' })
+};
+const S = () => state[state.app];
+let apiKey = '';
+try { apiKey = localStorage.getItem('gemini_custom_api_key') || ''; } catch (e) {}
+const run = { on: false, pct: 0, label: '', ctrl: null, timer: null, jobs: {}, total: 0, done: 0, lastTick: 0 };
+
+/* ================= SOUND ================= */
+const Snd = {
+  ctx: null, on: true,
+  init() { try { if (!this.ctx) { const A = window.AudioContext || window.webkitAudioContext; if (A) this.ctx = new A(); } if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); } catch (e) {} },
+  tone(f, t = .08, type = 'sine', v = .12, delay = 0, slide = 0) {
+    if (!this.on || !this.ctx) return;
+    const c = this.ctx, o = c.createOscillator(), g = c.createGain(), t0 = c.currentTime + delay;
+    o.type = type; o.frequency.setValueAtTime(f, t0);
+    if (slide) o.frequency.exponentialRampToValueAtTime(f * slide, t0 + t);
+    g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + .012); g.gain.exponentialRampToValueAtTime(.0001, t0 + t);
+    o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + t + .03);
+  },
+  click() { this.tone(660, .06, 'triangle', .1, 0, 1.35); },
+  chip() { this.tone(520, .07, 'sine', .1); this.tone(780, .09, 'sine', .08, .05); },
+  pop() { this.tone(900, .06, 'sine', .09, 0, 1.6); },
+  upload() { [523, 659, 784].forEach((f, i) => this.tone(f, .12, 'sine', .1, i * .07)); },
+  start() { this.tone(392, .12, 'triangle', .12); this.tone(587, .18, 'triangle', .12, .1); },
+  tick() { this.tone(1000, .04, 'sine', .05); },
+  done() { [523, 659, 784, 1047].forEach((f, i) => this.tone(f, .24, 'triangle', .13, i * .11)); },
+  err() { this.tone(240, .28, 'sawtooth', .09, 0, .65); },
+  play(n) { if (n === 'none') return; (this[n] || this.click).call(this); }
+};
+try { Snd.on = localStorage.getItem('grader_sound') !== 'off'; } catch (e) {}
+document.addEventListener('pointerdown', () => Snd.init(), { passive: true });
+document.addEventListener('click', e => {
+  const b = e.target.closest('button,.chip,.lg,.rc');
+  if (!b || b.disabled) return;
+  Snd.init(); Snd.play(b.dataset.snd || 'click');
+}, true);
+
+function burst() {
+  const cv = $('#fx'), ctx = cv.getContext('2d');
+  cv.width = innerWidth; cv.height = innerHeight;
+  const cols = ['#ff6b4a', '#ffb020', '#7c3aed', '#db2777', '#059669', '#2563eb', '#06b6d4'];
+  const ps = Array.from({ length: 90 }, () => ({ x: cv.width / 2, y: cv.height * .35, vx: (Math.random() - .5) * 14, vy: -Math.random() * 13 - 3, s: 5 + Math.random() * 6, c: cols[Math.random() * cols.length | 0], r: Math.random() * 6, vr: (Math.random() - .5) * .4 }));
+  let f = 0;
+  (function step() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ps.forEach(p => { p.vy += .35; p.x += p.vx; p.y += p.vy; p.r += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 3, p.s, p.s * .6); ctx.restore(); });
+    if (++f < 90) requestAnimationFrame(step); else ctx.clearRect(0, 0, cv.width, cv.height);
+  })();
+}
+let toastT;
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600); }
+
+/* ================= INPUT HELPERS ================= */
+function compress(file, max = 1600) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onerror = () => rej(new Error('Cannot read ' + file.name));
+    r.onload = e => {
+      const im = new Image();
+      im.onerror = () => rej(new Error('Not an image: ' + file.name));
+      im.onload = () => {
+        const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas');
+        c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+        const url = c.toDataURL('image/jpeg', .85);
+        res({ id: nid(), name: file.name, url, b64: url.split(',')[1] });
+      };
+      im.src = e.target.result;
+    };
+    r.readAsDataURL(file);
+  });
+}
+const loadScript = src => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+async function pdfText(file) {
+  if (!window.pdfjsLib) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+  const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+  let t = '';
+  for (let i = 1; i <= pdf.numPages; i++) { const c = await (await pdf.getPage(i)).getTextContent(); t += c.items.map(x => x.str).join(' ') + '\n'; }
+  return t.trim();
+}
+const byName = (a, b) => a.name.localeCompare(b.name, undefined, { numeric: true });
+const isImg = f => f.type.startsWith('image/');
+const isPdf = f => f.type === 'application/pdf' || /\.pdf$/i.test(f.name);
+const isTxt = f => f.type.startsWith('text/') || /\.txt$/i.test(f.name);
+const stem = n => n.replace(/\.[^.]+$/, '');
+
+/* ================= SETUP UI ================= */
+function renderChips() {
+  const s = S().sel, app = state.app;
+  const chip = (act, v, label, on) => `<button class="chip" data-act="${act}" data-v="${v}" aria-pressed="${on}" data-snd="chip">${label}</button>`;
+  let h = '';
+  if (app === 'uasa') {
+    h += `<div class="grp"><small>Form</small>${[1, 2, 3].map(v => chip('form', v, v, s.form === v)).join('')}</div>`;
+    h += `<div class="grp"><small>Part</small>${[1, 2].map(v => chip('part', v, v, s.part === v)).join('')}</div>`;
+  } else {
+    h += `<div class="grp"><small>Part</small>${[1, 2, 3].map(v => chip('part', v, v, s.part === v)).join('')}</div>`;
+    if (s.part === 3) h += `<div class="grp"><small>Type</small>${['article', 'review', 'report', 'story'].map(v => chip('genre', v, cap(v), s.genre === v)).join('')}</div>`;
+  }
+  $('#chips').innerHTML = h;
+  const sp = specFor(app, s);
+  $('#specLine').innerHTML = `<span class="pill band">${sp.scale}</span><span class="pill">${sp.wl} words</span><span class="pill">20 marks</span>`;
+  updateWC();
+}
+function updateWC() {
+  const n = words($('#essay').value), sp = specFor(state.app, S().sel);
+  const el = $('#wc');
+  if (!n) { el.className = 'pill'; el.textContent = `0 / ${sp.wl}`; return; }
+  el.className = 'pill ' + (n >= sp.lo && n <= sp.hi ? 'ok' : 'warn');
+  el.textContent = `${n} / ${sp.wl}`;
+}
+function thumbs(list, host, kind) {
+  host.innerHTML = list.map(im => `<span class="th"><img src="${im.url}" alt=""><button data-act="rm-img" data-kind="${kind}" data-id="${im.id}" data-snd="pop" aria-label="Remove">×</button></span>`).join('');
+}
+function renderInputs() {
+  const s = S();
+  $('#prompt').value = s.prompt; $('#essay').value = s.essay;
+  thumbs(s.promptImg ? [s.promptImg] : [], $('#promptThumb'), 'prompt');
+  thumbs(s.images, $('#essayThumbs'), 'essay');
+  renderChips();
+}
+function setApp(app) {
+  if (run.on) return toast('Tap stop first');
+  state.app = app; document.body.dataset.app = app;
+  $$('#appSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === app));
+  renderInputs(); mountSingle(); renderBulk(); renderBar();
+}
+function setMode(mode) {
+  if (run.on) return toast('Tap stop first');
+  state.mode = mode;
+  $$('#modes button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === mode));
+  $('#vSingle').hidden = mode !== 'single'; $('#vBulk').hidden = mode !== 'bulk';
+  renderBar();
+}
+
+/* ================= BAR ================= */
+function renderBar() {
+  const el = $('#bar .in');
+  if (run.on) {
+    el.innerHTML = `<div class="prog"><div class="pct" id="pct">0%</div><div class="pcol"><div class="track"><i class="fill" id="fill" style="width:0%"></i></div><div class="pl" id="pl"></div></div><button class="ico" data-act="stop" data-snd="none" aria-label="Stop">${icon('stop')}</button></div>`;
+    paintProg(); return;
+  }
+  if (state.mode === 'single') {
+    el.innerHTML = `<button class="cta" data-act="grade" data-snd="none">${icon('spark')}Grade</button>`;
+  } else {
+    const n = S().bulk.filter(b => b.status !== 'done' && (b.essay.trim() || b.images.length)).length;
+    el.innerHTML = `<button class="cta" data-act="b-grade" data-snd="none" ${n ? '' : 'disabled'}>${icon('spark')}Grade ${n || ''}</button>`;
+  }
+  const nb = S().bulk.length, bb = $('#bulkBadge'); bb.hidden = !nb; bb.textContent = nb;
+}
+function paintProg() {
+  const p = $('#pct'); if (!p) return;
+  const v = Math.min(100, Math.round(run.pct));
+  p.textContent = v + '%'; $('#fill').style.width = v + '%'; $('#pl').textContent = run.label;
+}
+
+/* ================= RUN CONTROL ================= */
+function runStart(total) {
+  Object.assign(run, { on: true, pct: 0, total, done: 0, jobs: {}, ctrl: new AbortController(), lastTick: 0 });
+  run.label = 'Starting';
+  renderBar();
+  run.timer = setInterval(tickRun, 120);
+}
+function jobFrac(j, now) {
+  if (j.done) return 1;
+  const creep = Math.min(.1, (now - j.t0) / 9000 * .1);
+  return Math.max(creep, Math.min(.95, j.f));
+}
+function tickRun() {
+  const now = performance.now(), ids = Object.keys(run.jobs);
+  let sum = run.done;
+  ids.forEach(id => { if (!run.jobs[id].done) sum += jobFrac(run.jobs[id], now); });
+  const target = Math.min(99, sum / run.total * 100);
+  if (target > run.pct) run.pct += (target - run.pct) * .25 + .05;
+  if (run.pct > target) run.pct = Math.max(run.pct - .2, target);
+  if (run.total === 1) run.label = run.pct < 12 ? 'Reading' : run.pct < 55 ? 'Marking' : run.pct < 90 ? 'Writing model essay' : 'Finishing';
+  else run.label = `${run.done} of ${run.total} done`;
+  const b = Math.floor(run.pct / 10);
+  if (b > run.lastTick && run.total === 1) Snd.tick();
+  run.lastTick = b;
+  paintProg();
+}
+function runEnd() { clearInterval(run.timer); run.on = false; run.ctrl = null; renderBar(); }
+function stopRun() { run.ctrl?.abort(); }
+
+/* ================= GEMINI ================= */
+function friendly(status, msg) {
+  if ([400, 401, 403].includes(status) && /api key|permission|invalid|unauthor/i.test(msg)) return 'API key not accepted';
+  if (status === 429) return 'Google says too many requests (not your key). Wait a minute, then Grade again';
+  if (status >= 500) return 'Google AI is busy right now (not your key). Grade again in a minute';
+  return `Error ${status}${msg ? ': ' + msg.slice(0, 90) : ''}`;
+}
+function genCfg(model, think) {
+  const g = { responseMimeType: 'application/json', maxOutputTokens: 12000 };
+  if (!/gemini-3/.test(model)) g.temperature = .3;
+  if (think) { if (/2\.5/.test(model)) g.thinkingConfig = { thinkingBudget: 0 }; else if (/gemini-3/.test(model)) g.thinkingConfig = { thinkingLevel: 'low' }; }
+  return g;
+}
+async function readStream(res, onChars) {
+  let text = '', fin = '';
+  const take = o => {
+    const c = o?.candidates?.[0];
+    (c?.content?.parts || []).forEach(p => { if (p.text && !p.thought) text += p.text; });
+    if (c?.finishReason) fin = c.finishReason;
+  };
+  if (!res.body || !res.body.getReader) {
+    const j = await res.json(); (Array.isArray(j) ? j : [j]).forEach(take); onChars?.(text.length);
+  } else {
+    const rd = res.body.getReader(), dec = new TextDecoder(); let buf = '';
+    for (;;) {
+      const { done, value } = await rd.read(); if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+        if (!line.startsWith('data:')) continue;
+        const js = line.slice(5).trim(); if (!js || js === '[DONE]') continue;
+        try { take(JSON.parse(js)); onChars?.(text.length); } catch (e) {}
+      }
+    }
+  }
+  if (!text) throw new Error(fin === 'SAFETY' ? 'Blocked by safety filter' : 'Empty reply. Try again');
+  if (fin === 'MAX_TOKENS') throw new Error('Reply cut off. Try a shorter essay');
+  return text;
+}
+async function callGemini(system, parts, { onChars, signal } = {}) {
+  let lastErr;
+  const dead = new Set();
+  for (let round = 0; round < 3; round++) {
+    if (round) await sleep(round * 6000, signal);          // wait 6s, then 12s, before trying everything again
+    for (let k = 0; k < MODELS.length; k++) {
+      const m = (modelIdx + k) % MODELS.length, model = MODELS[m];
+      if (dead.has(model)) continue;
+      let think = true;
+      for (let a = 0; a < 2; a++) {
+        let res;
+        try {
+          res = await fetch(`${BASE}${model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(apiKey)}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, signal,
+            body: JSON.stringify({ contents: [{ role: 'user', parts }], systemInstruction: { parts: [{ text: system }] }, generationConfig: genCfg(model, think) })
+          });
+        } catch (e) { if (e.name === 'AbortError') throw e; lastErr = new Error('Network error. Check your connection'); await sleep(1500, signal); continue; }
+        if (res.ok) { modelIdx = m; return readStream(res, onChars); }
+        let msg = ''; try { msg = (await res.json())?.error?.message || ''; } catch (e) {}
+        if (res.status === 404) { dead.add(model); lastErr = new Error(friendly(404, msg)); break; }
+        if (res.status === 400 && think && /think/i.test(msg)) { think = false; a--; continue; }
+        if ([429, 500, 502, 503, 504].includes(res.status)) { lastErr = new Error(friendly(res.status, msg)); if (a === 0) await sleep(2000, signal); continue; }
+        throw new Error(friendly(res.status, msg));
+      }
+    }
+  }
+  throw lastErr || new Error('Could not reach Gemini');
+}
+function parseJSON(t) {
+  t = t.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+  const a = t.indexOf('{'), b = t.lastIndexOf('}');
+  if (a < 0 || b < 0) throw new Error('Could not read the AI reply');
+  return JSON.parse(t.slice(a, b + 1));
+}
+
+function systemPrompt(sp) {
+  const rub = CRIT.map(c => `${c.n}:\n  5 = ${RUB[c.k][5]}\n  3 = ${RUB[c.k][3]}\n  1 = ${RUB[c.k][1]}\n  0 = ${RUB[c.k][0]}`).join('\n');
+  const sym = `  "merit" (✓ tick): good language, vocabulary or idea worth crediting.
+  "serious" (straight line under ONE word): serious single word error (MWE), e.g. wrong tense, subject-verb agreement (SVA). "quote" must be that one word only.
+  "minor" (wavy line under ONE word): minor single word error (SWE), e.g. spelling. "quote" must be that one word only.
+  "multiple" (parallel lines in the right-hand margin): errors multiple in nature, several errors together that distort the meaning of a phrase or clause. "quote" is that whole phrase or clause.
+  "omission" (∧ caret): a word is missing. "quote" is the word just before the gap and "fix" is the missing word.
+  "repeat" (R): a repeated word. "quote" is the repeated word.
+  "para" (§): paragraphing problem. "quote" is the first words where a new paragraph should begin.`;
+  return `You are a Lembaga Peperiksaan Malaysia (LPM) English writing examiner marking one script: ${sp.exam}.
+Task type: ${sp.kind}. Target length: ${sp.wl} words. Marking scale: ${SCALE[sp.scale]}
+
+SCORING
+Score four criteria independently, whole numbers 0-5 (2 and 4 sit between neighbouring descriptors): Content, Communicative Achievement, Organisation, Language. Total is out of 20 (the page adds it up).
+${rub}
+Length is not a criterion; penalise it only through Content or Communicative Achievement. If the script is blank, copied from the question, or not mainly English, give 0 for all four.
+Set cefr to the level the script shows, within A1 to B2 (e.g. "A2", "A2 High", "B1 Low").
+
+MARKING SYMBOLS (official LPM; use these codes in "marks")
+${sym}
+
+OUTPUT: return ONLY one JSON object:
+{
+ "transcription": "the student's text exactly as written, errors kept. For photos, transcribe all pages in order",
+ "scores": {"c":0,"ca":0,"o":0,"l":0},
+ "cefr": "A2",
+ "flag": {"type":"none | off-task | not-english | too-short","note":""},
+ "overall": "2-3 warm sentences to the student ('you'), naming one real strength and the single biggest next step, using their own words in quotes",
+ "criteria": {
+   "c":  {"why":"1-2 sentences: why this mark, tied to the descriptor", "personal":"1-2 sentences to the student quoting 1-3 of their own words", "next":"one concrete step to earn the next mark"},
+   "ca": {...}, "o": {...}, "l": {...}
+ },
+ "marks": [{"quote":"EXACT substring of transcription (ONE word for serious, minor, repeat)","context":"3-6 exact words from the transcription around the quote","code":"merit|serious|minor|multiple|omission|repeat|para","fix":"the corrected word or phrase, or the missing word for omission, else empty","note":"max 12 words why"}],
+ "improve": [{"area":"2-3 word label","was":"exact quote from the student","better":"improved version","why":"max 18 words"}],
+ "model": [{"t":"text piece","k":"vocab | connector | detail | grammar | (empty for unchanged text)"}]
+}
+
+RULES
+- marks: 10-20 for a full essay (fewer for short ones), including at least 3 merits. Quotes must be exact, non-overlapping and in reading order. Follow the symbol rules above exactly: serious, minor and repeat mark a SINGLE word; if an error spans several words use "multiple".
+- improve: 3-5 items, most valuable first.
+- model: the student's OWN essay raised about one band. Keep their ideas, order and voice. Fix errors, upgrade vocabulary, add connectors and a little detail. Stay near the target length. The "t" pieces joined together must read as the full essay; use "\\n\\n" for paragraph breaks. Tag only changed or added pieces (vocab = better word choice, connector = linking word, detail = added idea or example, grammar = better structure).
+- Every comment must refer to this student's actual writing. No generic advice. Keep each comment short and kind.
+- Write in plain English suitable for a Malaysian secondary school teacher and student.`;
+}
+
+async function assess({ app, spec, prompt, promptImg, essay, images, onFrac, signal }) {
+  const parts = [];
+  if (promptImg) parts.push({ inlineData: { mimeType: 'image/jpeg', data: promptImg.b64 } });
+  const typed = essay.trim();
+  if (!typed) images.forEach(i => parts.push({ inlineData: { mimeType: 'image/jpeg', data: i.b64 } }));
+  parts.push({ text: `Question:\n${prompt.trim() || '(see the attached question image, or mark for general quality of the task type)'}\n\nStudent essay:\n${typed || '(handwritten: photo pages attached, in order. Transcribe them first.)'}` });
+  const expected = 3800 + (typed ? words(typed) : spec.w) * 22;
+  const raw = await callGemini(systemPrompt(spec), parts, { onChars: n => onFrac?.(n / expected), signal });
+  return normalize(parseJSON(raw), spec, typed);
+}
+function normalize(r, spec, typed) {
+  const sc = { c: clamp(r.scores?.c), ca: clamp(r.scores?.ca), o: clamp(r.scores?.o), l: clamp(r.scores?.l) };
+  const text = String(r.transcription || typed || '');
+  const crit = {};
+  CRIT.forEach(c => { const x = r.criteria?.[c.k] || {}; crit[c.k] = { why: String(x.why || ''), personal: String(x.personal || ''), next: String(x.next || '') }; });
+  let model = r.model; if (typeof model === 'string') model = [{ t: model, k: '' }];
+  const flag = r.flag && r.flag.type && r.flag.type !== 'none' ? { type: String(r.flag.type), note: String(r.flag.note || '') } : null;
+  return { spec, d: {
+    text, words: words(text), sc, total: sc.c + sc.ca + sc.o + sc.l, cefr: String(r.cefr || ''), flag,
+    overall: String(r.overall || ''), crit,
+    marks: (Array.isArray(r.marks) ? r.marks : []).filter(m => m && m.quote && SYM[m.code]).map(m => ({ quote: String(m.quote).trim(), context: String(m.context || ''), code: ((m.code === 'serious' || m.code === 'minor') && words(String(m.quote)) > 1) ? 'multiple' : m.code, fix: String(m.fix || ''), note: String(m.note || '') })),
+    improve: (Array.isArray(r.improve) ? r.improve : []).filter(x => x && (x.was || x.better)).slice(0, 6).map(x => ({ area: String(x.area || 'Improve'), was: String(x.was || ''), better: String(x.better || ''), why: String(x.why || '') })),
+    model: Array.isArray(model) ? model.filter(x => x && x.t).map(x => ({ t: String(x.t), k: String(x.k || '') })) : []
+  } };
+}
+
+/* ================= RESULT VIEW ================= */
+function place(text, marks) {
+  const used = [], out = [], low = text.toLowerCase(), L = text.length;
+  const free = (st, e) => !used.some(u => st < u[1] && e > u[0]);
+  const letter = c => /[A-Za-z0-9']/.test(c || '');
+  const whole = (i, n, q) => !(letter(q[0]) && letter(text[i - 1])) && !(letter(q[q.length - 1]) && letter(text[i + n]));
+  const locate = (q, lo, hi) => {
+    for (const [H, Q] of [[text, q], [low, q.toLowerCase()]]) {
+      let from = lo, i;
+      while ((i = H.indexOf(Q, from)) >= 0 && i + Q.length <= hi) { if (free(i, i + Q.length) && whole(i, Q.length, Q)) return i; from = i + 1; }
+    }
+    return -1;
+  };
+  for (const m of marks) {
+    const q = m.quote; let lo = 0, hi = L;
+    if (m.context) { let c = text.indexOf(m.context); if (c < 0) c = low.indexOf(m.context.toLowerCase()); if (c >= 0) { lo = c; hi = c + m.context.length; } }
+    let idx = locate(q, lo, hi);
+    if (idx < 0 && (lo > 0 || hi < L)) idx = locate(q, 0, L);
+    if (idx < 0) continue;
+    used.push([idx, idx + q.length]); out.push({ s: idx, e: idx + q.length, m });
+  }
+  return out.sort((a, b) => a.s - b.s);
+}
+function scriptNodes(text, placed) {
+  const f = document.createDocumentFragment(); let p = 0;
+  const btn = (x, i, cls) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mk mk-' + x.m.code + (cls ? ' ' + cls : ''); b.dataset.i = i; b.dataset.code = x.m.code; b.dataset.snd = 'pop'; return b; };
+  placed.forEach((x, i) => {
+    if (x.s > p) f.append(text.slice(p, x.s));
+    const q = text.slice(x.s, x.e), c = x.m.code;
+    if (c === 'omission') {                       // caret sits at the gap, after the word before it
+      f.append(q); const b = btn(x, i, 'caret'); b.textContent = '∧'; f.append(b);
+    } else if (c === 'para') {                    // section mark sits where the new paragraph starts
+      const b = btn(x, i, 'caret'); b.textContent = '§'; f.append(b, q);
+    } else {
+      const b = btn(x, i); b.append(q);
+      if (c === 'merit' || c === 'repeat') { const sup = document.createElement('sup'); sup.textContent = SYM[c].g; b.append(sup); }
+      f.append(b);
+    }
+    p = x.e;
+  });
+  if (p < text.length) f.append(text.slice(p));
+  return f;
+}
+// "||" parallel lines go in the right-hand margin beside the lines that contain multiple errors
+function layoutGutters(host) {
+  if (!host) return;
+  $$('.gut', host).forEach(g => g.remove());
+  const box = host.getBoundingClientRect(); if (!box.height) return;
+  $$('.mk-multiple', host).forEach(m => {
+    const rs = [...m.getClientRects()]; if (!rs.length) return;
+    const top = Math.min(...rs.map(r => r.top)) - box.top, bot = Math.max(...rs.map(r => r.bottom)) - box.top;
+    const g = document.createElement('button'); g.type = 'button'; g.className = 'gut'; g.dataset.i = m.dataset.i; g.dataset.code = 'multiple'; g.dataset.snd = 'pop';
+    g.setAttribute('aria-label', 'Multiple errors'); g.style.top = (top + 3) + 'px'; g.style.height = Math.max(14, bot - top - 6) + 'px';
+    host.append(g);
+  });
+}
+const HL = { vocab: ['Vocabulary', '#8b5cf6'], connector: ['Connectors', '#3b82f6'], detail: ['Detail', '#f97316'], grammar: ['Grammar', '#22c55e'] };
+function modelNodes(segs) {
+  const f = document.createDocumentFragment();
+  segs.forEach(s => { if (s.k && HL[s.k]) { const sp = document.createElement('span'); sp.className = 'hl-' + s.k; sp.textContent = s.t; f.append(sp); } else f.append(s.t); });
+  return f;
+}
+const FLAGS = { 'off-task': 'Off task', 'not-english': 'Not in English', 'too-short': 'Too short' };
+
+function resultHTML(rec) {
+  const { d, spec } = rec;
+  const counts = {}; place(d.text, d.marks).forEach(x => counts[x.m.code] = (counts[x.m.code] || 0) + 1);
+  const used = Object.keys(SYM).filter(k => counts[k]);
+  const critHTML = CRIT.map(c => {
+    const n = d.sc[c.k], x = d.crit[c.k];
+    return `<article class="crit" style="--k:var(--${c.k});--ks:var(--${c.k}S)">
+      <header><div class="cn"><i>${c.s}</i>${c.n}</div><div class="sc">${n}<small>/5</small></div></header>
+      <div class="pips">${[1, 2, 3, 4, 5].map(i => `<b class="${i <= n ? 'on' : ''}"></b>`).join('')}</div>
+      <p>${esc(x.personal || x.why)}</p>
+      <button class="more" data-act="more" aria-expanded="false" data-snd="pop">Why ${n}? ${icon('chev')}</button>
+      <div class="why" hidden><div class="band"><b>${n}</b> · ${esc(rubricText(c.k, n))}</div>${x.why ? `<p>${esc(x.why)}</p>` : ''}${x.next ? `<p class="next">Next: ${esc(x.next)}</p>` : ''}</div>
+    </article>`;
+  }).join('');
+  const modelKinds = [...new Set(d.model.map(s => s.k).filter(k => HL[k]))];
+  return `<div class="res">
+    <div class="card hero">
+      <div class="ring" data-total="${d.total}"><div><b>0</b><small>/20</small></div></div>
+      <div><div class="spec"><span class="pill band">${esc(d.cefr || spec.scale)}</span><span class="pill">${esc(spec.short)}</span><span class="pill">${d.words} words</span></div><p>${esc(d.overall)}</p></div>
+    </div>
+    ${d.flag ? `<div class="banner">${esc(FLAGS[d.flag.type] || d.flag.type)}${d.flag.note ? ': ' + esc(d.flag.note) : ''}</div>` : ''}
+    <div class="tabs">${[['marks', 'Marks'], ['script', 'Script'], ['improve', 'Improve'], ['model', 'Model']].map(([k, l], i) => `<button data-act="tab" data-v="${k}" aria-pressed="${i === 0}" data-snd="chip">${l}</button>`).join('')}</div>
+    <div class="pane" data-pane="marks">${critHTML}</div>
+    <div class="pane" data-pane="script" hidden>
+      <div class="card"><div class="leg">${used.map(k => `<button class="lg" data-act="filter" data-v="${k}" aria-pressed="false" data-snd="chip"><b>${SYM[k].g}</b>${counts[k]}</button>`).join('')}</div>
+      <div class="script"></div><p class="hint">Tap a mark to see why.</p></div>
+    </div>
+    <div class="pane" data-pane="improve" hidden>${d.improve.length ? d.improve.map(x => `<div class="imp"><span class="ar">${esc(x.area)}</span><div style="margin-top:8px"><span class="was">${esc(x.was)}</span> → <span class="bet">${esc(x.better)}</span></div>${x.why ? `<p>${esc(x.why)}</p>` : ''}</div>`).join('') : '<div class="empty">Nothing to improve.</div>'}</div>
+    <div class="pane" data-pane="model" hidden>
+      <div class="card">${d.model.length ? `<div class="leg">${modelKinds.map(k => `<button class="lg" data-act="hl" data-v="${k}" aria-pressed="true" data-snd="chip"><i style="background:${HL[k][1]}"></i>${HL[k][0]}</button>`).join('')}<button class="lg" data-act="copy-model" data-snd="upload">${icon('copy')}Copy</button></div><div class="mdl"></div>` : '<div class="empty">No model essay.</div>'}</div>
+    </div>
+  </div>`;
+}
+function mountResult(host, rec) {
+  host.innerHTML = resultHTML(rec);
+  const res = $('.res', host); res.__rec = rec; rec.placed = place(rec.d.text, rec.d.marks);
+  $('.script', res)?.append(scriptNodes(rec.d.text, rec.placed));
+  $('.mdl', res)?.append(modelNodes(rec.d.model));
+  const ring = $('.ring', res), b = $('b', ring), tot = rec.d.total, t0 = performance.now();
+  (function anim(t) { const k = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - k, 3); ring.style.setProperty('--p', e * tot / 20 * 100); b.textContent = Math.round(e * tot); if (k < 1) requestAnimationFrame(anim); })(t0);
+}
+function mountSingle() {
+  const host = $('#result'); host.innerHTML = '';
+  if (S().rec) mountResult(host, S().rec);
+}
+function openSheet(rec, i) {
+  const x = rec.placed[i]; if (!x) return;
+  const m = x.m, s = SYM[m.code];
+  $('#sheet').innerHTML = `<div class="sh-h"><div class="sh-g ${m.code}">${esc(s.g)}</div><div><b>${s.n}${s.tag ? ' · ' + s.tag : ''}</b><span>${esc(s.d)}${s.e ? ': ' + esc(s.e) : ''}</span></div></div>
+    <div style="font-size:18px;margin:8px 0">${m.fix ? `<span class="was">${esc(m.quote)}</span> → <span class="bet">${esc(m.fix)}</span>` : `<b>${esc(m.quote)}</b>`}</div>
+    ${m.note ? `<p style="margin:6px 0 14px;color:var(--mute)">${esc(m.note)}</p>` : ''}
+    <button class="btn pri" style="width:100%;justify-content:center" data-act="close-sheet" data-snd="pop">Got it</button>`;
+  $('#sheet').classList.add('on'); $('#scrim').classList.add('on');
+}
+function closeSheet() { $('#sheet').classList.remove('on'); $('#scrim').classList.remove('on'); }
+
+/* ================= SINGLE GRADE ================= */
+function needKey() { if (apiKey) return false; openKey(); toast('Add your API key first'); Snd.err(); return true; }
+async function gradeSingle() {
+  const s = S();
+  if (!s.essay.trim() && !s.images.length) { toast('Add an essay first'); Snd.err(); return; }
+  if (needKey()) return;
+  Snd.start();
+  const app = state.app, spec = specFor(app, s.sel);
+  runStart(1);
+  const id = 'one'; run.jobs[id] = { t0: performance.now(), f: 0, done: false };
+  try {
+    const rec = await assess({ app, spec, prompt: s.prompt, promptImg: s.promptImg, essay: s.essay, images: s.images, signal: run.ctrl.signal, onFrac: f => { run.jobs[id].f = f; } });
+    s.rec = rec;
+    run.jobs[id].done = true; run.done = 1; run.pct = 100; paintProg();
+    await sleep(250);
+    runEnd(); mountSingle(); Snd.done(); burst();
+    $('#result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) {
+    runEnd();
+    if (e.name === 'AbortError') toast('Stopped'); else { toast(e.message || 'Something went wrong'); Snd.err(); }
+  }
+}
+
+/* ================= BULK ================= */
+const newStu = (o = {}) => ({ id: nid(), name: o.name || '', essay: o.essay || '', images: o.images || [], status: 'idle', err: '', rec: null, prog: 0 });
+function addStu(o) { const s = S(), st = newStu(o); if (!st.name) st.name = 'Student ' + (s.bulk.length + 1); s.bulk.push(st); return st; }
+function rowHTML(st, i) {
+  return `<div class="rowc ${st.status}" id="r-${st.id}" data-id="${st.id}">
+    <div class="rtop"><span class="num">${i + 1}</span><input class="name" value="${esc(st.name)}" placeholder="Name" data-f="name"><span class="st ${st.status}">${stLabel(st)}</span>
+      <button class="ico" data-act="b-del" data-snd="pop" aria-label="Remove">${icon('x')}</button></div>
+    <textarea rows="2" data-f="essay" placeholder="Essay or add photos">${esc(st.essay)}</textarea>
+    <div class="rfoot"><span class="wcn">${words(st.essay)} words</span><button class="mini" data-act="b-photos" data-snd="none">${icon('camera')}</button><span class="thumbs" style="margin:0">${st.images.map(im => `<span class="th"><img src="${im.url}" alt=""><button data-act="rm-img" data-kind="row" data-id="${im.id}" data-snd="pop">×</button></span>`).join('')}</span></div>
+    <div class="rbar"><i style="width:${st.status === 'done' ? 100 : st.prog * 100}%"></i></div>
+    <p class="err" ${st.err ? '' : 'hidden'}>${esc(st.err)}</p></div>`;
+}
+const stLabel = st => ({ idle: 'Ready', running: 'Grading', done: st.rec ? st.rec.d.total + '/20' : 'Done', error: 'Failed' }[st.status]);
+function paintRow(st) {
+  const r = $('#r-' + st.id); if (!r) return;
+  r.className = 'rowc ' + st.status;
+  const s = $('.st', r); s.className = 'st ' + st.status; s.textContent = stLabel(st);
+  $('.rbar i', r).style.width = (st.status === 'done' ? 100 : st.prog * 100) + '%';
+  const e = $('.err', r); e.hidden = !st.err; e.textContent = st.err;
+}
+function renderBulk() {
+  const s = S();
+  $('#blist').innerHTML = s.bulk.length ? s.bulk.map(rowHTML).join('') : '<div class="empty">Add students, paste essays or upload files.</div>';
+  $('#bRedo').hidden = $('#bClear').hidden = !s.bulk.length;
+  renderBulkResults(); renderBar();
+}
+function renderBulkResults() {
+  const done = S().bulk.filter(b => b.status === 'done' && b.rec), host = $('#bres');
+  if (!done.length) { host.innerHTML = ''; return; }
+  const t = done.map(b => b.rec.d.total), avg = t.reduce((a, b) => a + b, 0) / t.length;
+  host.innerHTML = `<div class="card"><div class="stats">
+    <div class="stat"><b>${avg.toFixed(1)}</b><span>Average</span></div><div class="stat"><b>${Math.max(...t)}</b><span>Highest</span></div>
+    <div class="stat"><b>${Math.min(...t)}</b><span>Lowest</span></div><div class="stat"><b>${done.length}/${S().bulk.length}</b><span>Graded</span></div></div>
+    ${done.map(b => `<button class="rc" data-act="b-open" data-id="${b.id}" data-snd="pop"><span class="nm">${esc(b.name)}${b.rec.d.flag ? ' ⚠' : ''}</span>
+      <span class="bars">${CRIT.map(c => `<i style="--k:var(--${c.k});height:${Math.max(3, b.rec.d.sc[c.k] / 5 * 30)}px"></i>`).join('')}</span>
+      <span class="pill band">${esc(b.rec.d.cefr || '')}</span><span class="tot">${b.rec.d.total}<small>/20</small></span></button>`).join('')}
+    <div class="row end"><button class="btn" data-act="b-copy" data-snd="upload">${icon('copy')}Sheets</button><button class="btn pri" data-act="b-csv" data-snd="upload">${icon('down')}CSV</button></div></div>`;
+}
+async function gradeBulk(all) {
+  const s = S();
+  if (all) s.bulk.forEach(b => { if (b.essay.trim() || b.images.length) { b.status = 'idle'; b.rec = null; b.err = ''; b.prog = 0; } });
+  const todo = s.bulk.filter(b => (b.essay.trim() || b.images.length) && b.status !== 'done');
+  if (!todo.length) { toast('Nothing to grade'); return; }
+  if (needKey()) return;
+  Snd.start();
+  const app = state.app, spec = specFor(app, s.sel), prompt = s.prompt, promptImg = s.promptImg;
+  renderBulk(); runStart(todo.length);
+  let next = 0, fails = 0;
+  const worker = async () => {
+    while (!run.ctrl.signal.aborted) {
+      const st = todo[next++]; if (!st) break;
+      st.status = 'running'; st.err = ''; paintRow(st);
+      run.jobs[st.id] = { t0: performance.now(), f: 0, done: false };
+      try {
+        st.rec = await assess({ app, spec, prompt, promptImg, essay: st.essay, images: st.images, signal: run.ctrl.signal, onFrac: f => { run.jobs[st.id].f = f; st.prog = Math.min(.95, f); } });
+        st.status = 'done'; Snd.pop();
+      } catch (e) {
+        if (e.name === 'AbortError') { st.status = 'idle'; st.prog = 0; paintRow(st); break; }
+        st.status = 'error'; st.err = e.message || 'Failed'; fails++;
+      }
+      run.jobs[st.id].done = true; run.done++; paintRow(st); renderBulkResults();
+    }
+  };
+  const ws = []; for (let i = 0; i < Math.min(CONCURRENCY, todo.length); i++) { ws.push(worker()); await sleep(350).catch(() => {}); }
+  await Promise.all(ws);
+  const stopped = run.ctrl.signal.aborted;
+  if (!stopped) { run.pct = 100; paintProg(); await sleep(250); }
+  runEnd(); renderBulk();
+  if (stopped) toast('Stopped'); else if (fails) { toast(`${fails} failed. Tap Grade to retry`); Snd.err(); } else { Snd.done(); burst(); }
+}
+function openDetail(id) {
+  const st = S().bulk.find(b => b.id === id); if (!st?.rec) return;
+  $('#dName').textContent = st.name + ' · ' + st.rec.spec.short;
+  mountResult($('#dBody'), st.rec);
+  $('#detail').classList.add('on'); $('#detail').scrollTop = 0;
+}
+function csvData() {
+  const rows = [['Name', 'Grader', 'Part', 'Words', 'Content', 'Communicative Achievement', 'Organisation', 'Language', 'Total /20', 'CEFR', 'Flag']];
+  S().bulk.filter(b => b.status === 'done' && b.rec).forEach(b => { const d = b.rec.d; rows.push([b.name, state.app.toUpperCase(), b.rec.spec.short, d.words, d.sc.c, d.sc.ca, d.sc.o, d.sc.l, d.total, d.cefr, d.flag ? d.flag.type : '']); });
+  return rows;
+}
+function exportCSV() {
+  const csv = csvData().map(r => r.map(c => '"' + String(c ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `${state.app}_${S().bulk[0] ? specFor(state.app, S().sel).short.replace(/\s/g, '') : 'results'}_results.csv`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+}
+
+/* ================= KEY ================= */
+function updateKeyBtn() { $('#keyBtn').classList.toggle('need', !apiKey); }
+function openKey() { $('#keyInput').value = apiKey; let r = false; try { r = !!localStorage.getItem('gemini_custom_api_key'); } catch (e) {} $('#keyRemember').checked = r; $('#keyModal').hidden = false; setTimeout(() => $('#keyInput').focus(), 60); }
+function saveKey() {
+  const v = $('#keyInput').value.trim(); if (!v) { toast('Enter your key'); return; }
+  apiKey = v;
+  try { if ($('#keyRemember').checked) localStorage.setItem('gemini_custom_api_key', v); else localStorage.removeItem('gemini_custom_api_key'); } catch (e) {}
+  $('#keyModal').hidden = true; updateKeyBtn(); toast($('#keyRemember').checked ? 'Key saved on this device' : 'Key ready for this visit');
+}
+function forgetKey() { apiKey = ''; try { localStorage.removeItem('gemini_custom_api_key'); } catch (e) {} $('#keyInput').value = ''; $('#keyRemember').checked = false; updateKeyBtn(); toast('Key removed'); }
+
+/* ================= FILES ================= */
+let rowTarget = null;
+async function handleSingleFiles(files) {
+  const s = S(); files = [...files].sort(byName); let n = 0;
+  for (const f of files) {
+    try {
+      if (isImg(f)) { s.images.push(await compress(f)); n++; }
+      else if (isPdf(f)) { const t = await pdfText(f); if (t) { s.essay = t; $('#essay').value = t; n++; } else toast('No text in that PDF. Use photos'); }
+      else if (isTxt(f)) { s.essay = (await f.text()).trim(); $('#essay').value = s.essay; n++; }
+    } catch (e) { toast(e.message); }
+  }
+  if (n) { Snd.upload(); thumbs(s.images, $('#essayThumbs'), 'essay'); updateWC(); }
+}
+async function handleBulkFiles(files) {
+  files = [...files].sort(byName); let n = 0;
+  for (const f of files) {
+    try {
+      if (isImg(f)) { addStu({ name: stem(f.name), images: [await compress(f)] }); n++; }
+      else if (isPdf(f)) { const t = await pdfText(f); addStu({ name: stem(f.name), essay: t }); n++; }
+      else if (isTxt(f)) { addStu({ name: stem(f.name), essay: (await f.text()).trim() }); n++; }
+    } catch (e) { toast(e.message); }
+  }
+  if (n) { Snd.upload(); renderBulk(); toast(`Added ${n}`); } else toast('Use photos, PDF or TXT');
+}
+
+/* ================= EVENTS ================= */
+const ACT = {
+  app: b => setApp(b.dataset.v),
+  mode: b => setMode(b.dataset.v),
+  sound: () => { Snd.on = !Snd.on; try { localStorage.setItem('grader_sound', Snd.on ? 'on' : 'off'); } catch (e) {} $('#sndBtn').innerHTML = icon(Snd.on ? 'vol' : 'mute'); if (Snd.on) { Snd.init(); Snd.chip(); } },
+  key: () => openKey(), 'key-save': saveKey, 'key-forget': forgetKey,
+  form: b => { const s = S(); s.sel.form = +b.dataset.v; renderChips(); },
+  part: b => { const s = S(); s.sel.part = +b.dataset.v; renderChips(); },
+  genre: b => { S().sel.genre = b.dataset.v; renderChips(); },
+  'pick-prompt-img': () => $('#fPrompt').click(),
+  'pick-photos': () => $('#fPhotos').click(),
+  'pick-file': () => $('#fFile').click(),
+  sample: () => {
+    const s = S(), x = state.app === 'uasa' ? SAMPLES.uasa[`${s.sel.form}-${s.sel.part}`] : SAMPLES.spm[s.sel.part];
+    s.prompt = x.q; s.essay = x.e; s.images = []; s.promptImg = null; s.rec = null; renderInputs(); mountSingle();
+  },
+  clear: () => { const s = S(); s.essay = ''; s.images = []; s.rec = null; renderInputs(); mountSingle(); },
+  'rm-img': b => {
+    const s = S(), id = b.dataset.id, k = b.dataset.kind;
+    if (k === 'prompt') { s.promptImg = null; thumbs([], $('#promptThumb'), 'prompt'); }
+    else if (k === 'essay') { s.images = s.images.filter(i => i.id !== id); thumbs(s.images, $('#essayThumbs'), 'essay'); }
+    else { s.bulk.forEach(st => st.images = st.images.filter(i => i.id !== id)); renderBulk(); }
+  },
+  grade: () => { if (!run.on) gradeSingle(); },
+  stop: stopRun,
+  tab: b => { const res = b.closest('.res'); $$('.tabs button', res).forEach(x => x.setAttribute('aria-pressed', x === b)); $$('.pane', res).forEach(p => p.hidden = p.dataset.pane !== b.dataset.v); if (b.dataset.v === 'script') layoutGutters($('.script', res)); },
+  more: b => { const open = b.getAttribute('aria-expanded') !== 'true'; b.setAttribute('aria-expanded', open); b.nextElementSibling.hidden = !open; },
+  filter: b => {
+    const on = b.getAttribute('aria-pressed') !== 'true', pane = b.closest('.pane');
+    $$('.lg', pane).forEach(x => x.setAttribute('aria-pressed', false)); b.setAttribute('aria-pressed', on);
+    $$('.mk,.gut', pane).forEach(m => m.classList.toggle('dim', on && m.dataset.code !== b.dataset.v));
+  },
+  hl: b => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on); b.classList.toggle('off', !on); b.closest('.pane').querySelector('.mdl').classList.toggle('off-' + b.dataset.v, !on); },
+  'copy-model': b => { const r = b.closest('.res').__rec; navigator.clipboard?.writeText(r.d.model.map(x => x.t).join('')).then(() => toast('Copied'), () => toast('Copy failed')); },
+  'close-sheet': closeSheet,
+  'close-detail': () => $('#detail').classList.remove('on'),
+  'b-add': () => { addStu(); renderBulk(); const t = $$('#blist textarea').pop(); t?.focus(); },
+  'b-paste': () => { $('#pastePanel').hidden = !$('#pastePanel').hidden; },
+  'b-paste-add': () => {
+    const chunks = $('#pasteBox').value.split(/^\s*-{3,}\s*$/m).map(c => c.trim()).filter(Boolean);
+    if (!chunks.length) return toast('Nothing to add');
+    chunks.forEach(c => { const m = c.match(/^name\s*:\s*(.+)\n?/i); addStu(m ? { name: m[1].trim(), essay: c.slice(m[0].length).trim() } : { essay: c }); });
+    $('#pasteBox').value = ''; $('#pastePanel').hidden = true; renderBulk(); toast(`Added ${chunks.length}`);
+  },
+  'b-files': () => $('#fBulk').click(),
+  'b-photos': b => { rowTarget = b.closest('.rowc').dataset.id; $('#fRow').click(); },
+  'b-del': b => { S().bulk = S().bulk.filter(x => x.id !== b.closest('.rowc').dataset.id); renderBulk(); },
+  'b-clear': () => { if (confirm('Remove all students?')) { S().bulk = []; renderBulk(); } },
+  'b-redo': () => { if (!run.on) gradeBulk(true); },
+  'b-grade': () => { if (!run.on) gradeBulk(false); },
+  'b-open': b => openDetail(b.dataset.id),
+  'b-csv': exportCSV,
+  'b-copy': () => navigator.clipboard?.writeText(csvData().map(r => r.map(c => String(c ?? '').replace(/[\t\r\n]+/g, ' ')).join('\t')).join('\n')).then(() => toast('Copied. Paste into Sheets'), () => toast('Copy failed. Use CSV'))
+};
+document.addEventListener('click', e => {
+  const mk = e.target.closest('.mk,.gut');
+  if (mk) { const res = mk.closest('.res'); if (res?.__rec) openSheet(res.__rec, +mk.dataset.i); return; }
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  if (b.dataset.act === 'close-sheet' && b.id === 'scrim') return closeSheet();
+  ACT[b.dataset.act]?.(b, e);
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'prompt') S().prompt = t.value;
+  else if (t.id === 'essay') { S().essay = t.value; updateWC(); }
+  else if (t.dataset.f) {
+    const row = t.closest('.rowc'), st = S().bulk.find(x => x.id === row.dataset.id); if (!st) return;
+    st[t.dataset.f] = t.value;
+    if (t.dataset.f === 'essay') { $('.wcn', row).textContent = words(t.value) + ' words'; renderBar(); }
+  }
+});
+$('#keyInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveKey(); });
+$('#keyModal').addEventListener('click', e => { if (e.target.id === 'keyModal') $('#keyModal').hidden = true; });
+$('#fPrompt').addEventListener('change', async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; try { S().promptImg = await compress(f); thumbs([S().promptImg], $('#promptThumb'), 'prompt'); Snd.upload(); } catch (x) { toast(x.message); } });
+$('#fPhotos').addEventListener('change', e => { const f = e.target.files; handleSingleFiles(f).then(() => { }); e.target.value = ''; });
+$('#fFile').addEventListener('change', e => { const f = [...e.target.files]; e.target.value = ''; handleSingleFiles(f); });
+$('#fBulk').addEventListener('change', e => { const f = [...e.target.files]; e.target.value = ''; handleBulkFiles(f); });
+$('#fRow').addEventListener('change', async e => {
+  const f = [...e.target.files].filter(isImg).sort(byName); e.target.value = '';
+  const st = S().bulk.find(x => x.id === rowTarget); if (!st || !f.length) return;
+  for (const x of f) { try { st.images.push(await compress(x)); } catch (er) { toast(er.message); } }
+  Snd.upload(); renderBulk();
+});
+addEventListener('dragover', e => { e.preventDefault(); document.body.classList.add('drop'); });
+addEventListener('dragleave', e => { if (!e.relatedTarget) document.body.classList.remove('drop'); });
+addEventListener('drop', e => { e.preventDefault(); document.body.classList.remove('drop'); const f = e.dataTransfer?.files; if (f?.length) (state.mode === 'bulk' ? handleBulkFiles(f) : handleSingleFiles(f)); });
+let rzT; addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => $$('.script').forEach(layoutGutters), 150); });
+addEventListener('keydown', e => { if (e.key === 'Escape') { closeSheet(); $('#keyModal').hidden = true; $('#detail').classList.remove('on'); } });
+
+/* ================= INIT ================= */
+$('#sndBtn').innerHTML = icon(Snd.on ? 'vol' : 'mute');
+document.body.dataset.app = 'uasa';
+renderInputs(); renderBulk(); updateKeyBtn();
+window.__grader = { state, normalize, specFor, place };
+})();
+
+</script>
+</body>
+</html>
